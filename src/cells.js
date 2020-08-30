@@ -3,16 +3,18 @@ import { FitAddon } from 'xterm-addon-fit'
 import { SearchAddon } from 'xterm-addon-search'
 import { fileRegex, urlRegex } from './utils.js'
 
-const   DEFAULT_XTERM_THEME = {foreground: "#00FAFA", background: "#000"},
+const   DEFAULT_XTERM_THEME = {
+            foreground: "#00FAFA", 
+            background: "#000",
+            selection: "#D9F505"},
         RETRIES             = 3,
         ABIT                = 10,
         TIMEOUT             = 3000,
-        SEARCH_OPTIONS      = {
+        SEARCH_OPTS = {
             regex: true,
             wholeWord: false,
-            caseSensitive: true,
-            incremental: true
-        }
+            incremental: false,
+            caseSensitive: true}
 
 export class Cell {
     constructor(props) {
@@ -440,6 +442,7 @@ export class Pane extends Cell {
             fontSize: this.fontSize,
             theme: this.theme,
             rows:24,
+            disableStdin: true,
             cols:80
         })
         this.fitAddon = new FitAddon()
@@ -476,7 +479,7 @@ export class Pane extends Cell {
                 afterLeader = false
             }
             else if (this.copyMode) {
-                this.handleCopyModeKey(ev)
+                this.handleCopyModeKey(ev.domEvent)
             // TODO: make the leader key configurable
             } else if ((ev.domEvent.ctrlKey == true) && (ev.domEvent.key == "a")) {
                 afterLeader = true
@@ -490,7 +493,8 @@ export class Pane extends Cell {
         var tf
         this.t.onScroll(ev => {
             this.scrolling = true
-            tf !== undefined && clearTimeout(tf)
+            if (tf !== undefined)
+                clearTimeout(tf)
             tf = setTimeout(e => this.scrolling = false, this.scrollLingers4)
         })
         this.t.textarea.addEventListener('paste', (event) => {
@@ -539,7 +543,6 @@ export class Pane extends Cell {
             this.t.focus()
         else 
             console.log("can't focus, this.t is undefined")
-        window.location.href = `#${this.e.id}`
     }
     /*
      * Splitting the pane, receivees a dir-  either "topbottom" or "rightleft"
@@ -628,27 +631,26 @@ export class Pane extends Cell {
         this.fit()
     }
     /*
-     * Pane.search(re) gets a string containing a regular expression and 
-     * searchs for it in the terminal buffer. 
-     * Search can go up or down based on the second arg
+     * Pane.handleCopyModeKey(ev) is called on a key press event when the
+     * pane is in copy mode. 
+     * Copy mode uses vim movment commands to let the user for text, mark it 
+     * and copy it.
      */
-    search(re, down) {
-        this.searchRE = re
-        if(this.searchAddon.findPrevious(re, SEARCH_OPTIONS))
-            this.focus()
-        else {
-            this.host.notify(`Couldn't find "${re}"`)
-            this.toggleSearch()
-        }
-    }
     handleCopyModeKey(ev) {
-        if (ev.domEvent.key == "n") {
-            if (!this.searchAddon.findPrevious(this.searchRE, SEARCH_OPTIONS))
-                this.host.notify(`Couldn't find "$(re)"`)
-                this.toggleSearch()
+        // Enter and "n" find the next match
+        if ((ev.keyCode == 13) || (ev.key == "n")) {
+            if (!this.searchAddon
+                     .findPrevious(this.searchRE, SEARCH_OPTS))
+                console.log(`Couldn't find "${this.searchRE}"`)
+            else
+                console.log(`Found "${this.searchRE}"`)
         }
-        else if (ev.domEvent.key == "q") {
+        else if (ev.key == "o") {
+            var ref = cordova.InAppBrowser.open(this.t.getSelection(), "_system", "");
+        }
+        else if (ev.key == "q") {
             this.toggleSearch()
+            this.t.scrollToBottom()
         }
     }
     /*
@@ -660,26 +662,40 @@ export class Pane extends Cell {
      */
     toggleSearch() {
         // show the search field
-        const ne = this.host.e.querySelector(".tabbar-names"),
+        const ne = this.host.e.querySelector(".tabbar-names-nav"),
               se = this.host.e.querySelector(".tabbar-search")
-        if (!this.copyMode) {
-            ne.style.display = "none"
-            se.style.display = "table"
+        this.copyMode = !this.copyMode
+        if (this.copyMode) {
+            ne.classList.add("hidden")
+            se.classList.remove("hidden")
             document.getElementById("search-button").classList.add("on")
             let u = se.querySelector("a[href='#find-url']"),
                 f = se.querySelector("a[href='#find-file']"),
                 i = se.querySelector("input[name='regex']")
-            u.addEventListener("click", _ => this.search(urlRegex))
-            f.addEventListener("click", _ => this.search(fileRegex))
-            i.addEventListener("change", ev => this.search(ev.target.value))
+            u.onclick = ev => {
+                ev.preventDefault()
+                ev.stopPropagation()
+                this.focus()
+                i.value = this.searchRE = urlRegex
+                this.handleCopyModeKey({keyCode: 13})
+            }
+            f.onclick = _ => this.searchAddon.findPrevious(fileRegex, SEARCH_OPTS)
+            i.onkeydown = ev => {
+                if (ev.keyCode == 13) {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    this.focus()
+                    this.searchRE = ev.target.value
+                    this.handleCopyModeKey(ev)
+                }
+            }
             i.focus()
         } else {
-            ne.style.display = "table"
-            se.style.display = "none"
+            ne.classList.remove("hidden")
+            se.classList.add("hidden")
             document.getElementById("search-button").classList.remove("on")
             this.focus()
         }
-        this.copyMode = !this.copyMode
 
     }
 }
