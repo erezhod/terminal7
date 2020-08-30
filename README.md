@@ -1,6 +1,6 @@
 # Terminal Seven
 
-Welcome!
+Welcome!!!
 
 Terminal 7 is a terminal multiplexer with full gesture support. 
 With Terminal 7, you can swipe to split a pane, tap it with two fingers to zoom
