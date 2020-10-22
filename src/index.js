@@ -1,6 +1,7 @@
 import "./css/terminal7.css"
 import "./css/xterm.css"
 import "./css/framework7-icons.css"
+// import "./css/codemirror.css"
 import { Terminal7, Host } from "./terminal7.js"
 
 var host, pc

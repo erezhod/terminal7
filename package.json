@@ -8,7 +8,7 @@
     "terminal7": "download_browser.js"
   },
   "build": {
-    "appId": "com.tuzig.terminal7",
+    "appId": "dev.terminal7",
     "files": [
       "index.html",
       "css/*"
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "codemirror": "^5.58.1",
     "cordova": "^10.0.0",
     "cordova-plugin-inappbrowser": "^4.0.0",
     "cordova-plugin-network-information": "^2.0.2",

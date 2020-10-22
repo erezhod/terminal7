@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no" />
-  <title>Terminal Seven</title>
+    <script src="lib/CodeMirror/lib/codemirror.js"></script>
+    <script src="lib/CodeMirror/addon/dialog/dialog.js"></script>
+    <script src="lib/CodeMirror/addon/search/searchcursor.js"></script>
+    <script src="lib/CodeMirror/mode/clike/clike.js"></script>
+    <script src="lib/CodeMirror/addon/edit/matchbrackets.js"></script>
+    <script src="lib/CodeMirror/keymap/vim.js"></script>
+    <title>Terminal Seven</title>
 </head>
 <body>
   <div id="terminal7">
@@ -73,7 +79,14 @@
                <i class="f7-icons reconnect">phone_arrow_up_right</i>
           </nav>
       </div>
-  </div>
+      <div id="settings-modal" class="hidden modal border">
+          <textarea id="edit-conf" lines="20" cols="60">
+          </textarea>
+          <nav class="two-buttons">
+               <i class="f7-icons close">xmark</i>
+               <i class="f7-icons save">floppy_disk</i>
+          </nav>
+      </div>
   </div>
    
   <div id="navbar" class="bar">
@@ -86,7 +99,7 @@
   <i id="search-button" class="f7-icons off">doc_text_search</i>
 
   <i id="connectivity" class="f7-icons">dot_radiowaves_left_right</i>
-  <i class="f7-icons">gear</i>
+  <i id="dotfile-button" class="f7-icons">gear</i>
       </nav>
 </div>
 
